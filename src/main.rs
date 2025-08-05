@@ -1,12 +1,13 @@
 use ztp_r::{
     configuration::get_configuration,
     startup::{build_app, create_connection_pool, get_listener, shutdown_signal},
+    telemetry::{get_subscriber, init_subscriber},
 };
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
-    tracing_subscriber::fmt::init();
-
+    let subscriber = get_subscriber("zero2prod".into(), "info".into(), std::io::stdout);
+    init_subscriber(subscriber);
     // TODO: make this clean as well
     let configuration = get_configuration().expect("Failed to read configuration.");
 

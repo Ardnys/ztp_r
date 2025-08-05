@@ -2,10 +2,14 @@ use std::time::Duration;
 
 use axum::{
     Router,
+    http::{Request, Response},
     routing::{get, post},
 };
+use secrecy::ExposeSecret;
 use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
 use tokio::signal;
+use tower_http::trace::TraceLayer;
+use uuid::Uuid;
 
 use crate::{
     configuration::Settings,
@@ -17,6 +21,28 @@ pub fn build_app(connection_pool: Pool<Postgres>) -> Router<()> {
         .route("/health_check", get(health_check))
         .route("/subscriptions", post(subscribe))
         .with_state(connection_pool)
+        .layer(
+            TraceLayer::new_for_http()
+                .make_span_with(|request: &Request<_>| {
+                    let request_id = Uuid::new_v4();
+                    tracing::info_span!(
+                        "http_request",
+                        method = %request.method(),
+                        uri = %request.uri(),
+                        headers = ?request.headers(),
+                        request_id = %request_id
+                    )
+                })
+                .on_response(
+                    |response: &Response<_>, latency: Duration, _span: &tracing::Span| {
+                        tracing::info!(
+                            status = %response.status(),
+                            elapsed_ms = %latency.as_millis(),
+                            "response sent"
+                        );
+                    },
+                ),
+        )
 }
 
 pub async fn create_connection_pool(
@@ -25,7 +51,7 @@ pub async fn create_connection_pool(
     PgPoolOptions::new()
         .max_connections(5)
         .acquire_timeout(Duration::from_secs(3))
-        .connect(&configuration.database.connection_string())
+        .connect(configuration.database.connection_string().expose_secret())
         .await
 }
 
