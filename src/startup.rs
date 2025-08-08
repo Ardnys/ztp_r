@@ -45,14 +45,11 @@ pub fn build_app(connection_pool: Pool<Postgres>) -> Router<()> {
         )
 }
 
-pub async fn create_connection_pool(
-    configuration: &Settings,
-) -> Result<Pool<Postgres>, sqlx::Error> {
+pub fn create_connection_pool(configuration: &Settings) -> Result<Pool<Postgres>, sqlx::Error> {
     PgPoolOptions::new()
         .max_connections(5)
         .acquire_timeout(Duration::from_secs(3))
-        .connect(configuration.database.connection_string().expose_secret())
-        .await
+        .connect_lazy(configuration.database.connection_string().expose_secret())
 }
 
 pub async fn get_listener(addr: &str) -> Result<tokio::net::TcpListener, std::io::Error> {

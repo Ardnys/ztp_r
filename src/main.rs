@@ -11,11 +11,14 @@ async fn main() -> Result<(), std::io::Error> {
     // TODO: make this clean as well
     let configuration = get_configuration().expect("Failed to read configuration.");
 
-    let connection_pool = create_connection_pool(&configuration)
-        .await
-        .expect("Failed to connect to database.");
+    let connection_pool =
+        create_connection_pool(&configuration).expect("Failed to connect to database.");
 
-    let listener = get_listener("127.0.0.1:8000").await?;
+    let address = format!(
+        "{}:{}",
+        configuration.application.host, configuration.application.port
+    );
+    let listener = get_listener(&address).await?;
     let app = build_app(connection_pool);
 
     println!("Listening on http://{}", listener.local_addr().unwrap());
