@@ -1,5 +1,3 @@
-use std::fmt::format;
-
 use secrecy::{ExposeSecret, SecretString};
 use serde::Deserialize;
 

@@ -25,6 +25,8 @@ tracing-log = "0.2.0"
 config = "0.15.13"
 uuid = {version = "1.17.0", features = ["v4"]}
 chrono = {version = "0.4.41", default-features = false, features = ["clock"]}
+unicode-segmentation = "1.12.0"
+validator = { version = "0.20.0", features = ["derive"] }
 
 [dependencies.sqlx]
 version = "0.8"
@@ -42,3 +44,7 @@ features = [
 [dev-dependencies]
 reqwest = "0.12.22"
 once_cell = "1"
+claims = "0.8.0"
+fake = "4.4.0"
+quickcheck = "1"
+quickcheck_macros = "1"
